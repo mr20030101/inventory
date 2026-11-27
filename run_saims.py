@@ -10,6 +10,14 @@ if sys.stdout is None or sys.stderr is None:
     sys.stdout = sys.stdout or _sink
     sys.stderr = sys.stderr or _sink
 
+# Packaged Windows app: compiled modules in sub-folders of the bundle (e.g. _argon2_cffi_bindings\_ffi.pyd)
+# depend on DLLs at the bundle's top level (python3.dll). Windows only searches a module's own folder, the
+# program folder and folders registered here, so register the bundle folder before anything is imported.
+if getattr(sys, "frozen", False) and sys.platform == "win32" and hasattr(os, "add_dll_directory"):
+    _bundle = getattr(sys, "_MEIPASS", os.path.dirname(sys.executable))
+    os.add_dll_directory(_bundle)
+    os.environ["PATH"] = _bundle + os.pathsep + os.environ.get("PATH", "")
+
 
 def _crash_log() -> None:
     """Keep the traceback of a crash in <data folder>/crash.log: the windowed app has nowhere else to show it."""
@@ -28,5 +36,7 @@ if __name__ == "__main__":
         raise
     except BaseException:
         _crash_log()
+        if getattr(sys, "frozen", False):
+            os._exit(1)  # the windowed app has no console to show the error; exit at once
         raise
     sys.exit(code)
