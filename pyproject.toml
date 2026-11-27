@@ -1,0 +1,24 @@
+[project]
+name = "saims"
+dynamic = ["version"]
+description = "SAIMS - School Asset & Inventory Management System"
+requires-python = ">=3.10"
+
+[project.gui-scripts]
+saims = "saims.desktop.main:main"
+
+[project.scripts]
+saims-server = "saims.backend.__main__:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "saims.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["saims*"]
+
+[tool.setuptools.package-data]
+saims = ["assets/*", "backend/migrations/*", "backend/migrations/versions/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/backend", "tests/desktop"]
+filterwarnings = ["ignore::DeprecationWarning"]

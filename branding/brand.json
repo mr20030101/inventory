@@ -1,0 +1,91 @@
+{
+  "name": "SAIMS",
+  "slug": "saims",
+  "colors": {
+    "ink": "#2f5d6e",
+    "sub": "#557280",
+    "accent": "#4fae8a",
+    "accent_text": "#2e7d5b",
+    "light": "#f5fafc",
+    "mist": "#c5dae2",
+    "shade": "#1f4452",
+    "shade_dark": "#c5dae2"
+  },
+  "wordmark": {
+    "primary": {
+      "text": "SAIMS",
+      "family": "plus-jakarta-sans",
+      "weight": 800,
+      "size": 60,
+      "tracking": -0.01
+    },
+    "secondary": {
+      "text": "SCHOOL ASSETS & INVENTORY",
+      "family": "plus-jakarta-sans",
+      "weight": 600,
+      "size": 10.26,
+      "tracking": 0.14
+    }
+  },
+  "mark": {
+    "viewBox": 120,
+    "bounds": [
+      18,
+      11.75,
+      84,
+      96.5
+    ],
+    "elements": [
+      {
+        "d": "M18 36 L60 60.25 L60 108.25 L18 84 Z",
+        "role": "body"
+      },
+      {
+        "d": "M60 60.25 L102 36 L102 84 L60 108.25 Z",
+        "role": "shade"
+      },
+      {
+        "d": "M60 11.75 L102 36 L60 60.25 L18 36 Z",
+        "role": "accent"
+      },
+      {
+        "d": "M22.96 69.01 L36.22 85.28 L54.72 65.13 L48.28 57.56 L33.78 73.35 L27.04 65.08 Z",
+        "role": "knockout"
+      }
+    ],
+    "small": [
+      {
+        "d": "M18 36 L60 60.25 L60 108.25 L18 84 Z",
+        "role": "body"
+      },
+      {
+        "d": "M60 60.25 L102 36 L102 84 L60 108.25 Z",
+        "role": "shade"
+      },
+      {
+        "d": "M60 11.75 L102 36 L60 60.25 L18 36 Z",
+        "role": "accent"
+      },
+      {
+        "d": "M20.5 69.05 L36.74 89.02 L57.7 66.78 L48.3 55.63 L33.26 71.61 L26.5 63.3 Z",
+        "role": "knockout"
+      }
+    ],
+    "mono": "M60 13.6 L98.8 36 L60 58.4 L21.2 36 Z M19.6 38.77 L58.4 61.17 L58.4 105.48 L19.6 83.08 Z M61.6 61.17 L100.4 38.77 L100.4 83.08 L61.6 105.48 Z M22.96 69.01 L36.22 85.28 L54.72 65.13 L48.28 57.56 L33.78 73.35 L27.04 65.08 Z"
+  },
+  "pattern": {
+    "tile": 120,
+    "motif_width": 30,
+    "slant": -12,
+    "spots": [
+      [
+        30,
+        30
+      ],
+      [
+        90,
+        90
+      ]
+    ]
+  }
+}

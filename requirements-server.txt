@@ -1,0 +1,9 @@
+# Server only (no desktop UI), e.g. on the school server. Add a PostgreSQL driver:
+fastapi>=0.115
+uvicorn>=0.30
+sqlalchemy>=2.0
+alembic>=1.13
+pydantic>=2.7
+argon2-cffi>=23.1
+qrcode[pil]>=7.4
+psycopg[binary]>=3.1

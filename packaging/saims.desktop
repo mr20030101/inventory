@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SAIMS
+GenericName=School Asset & Inventory Management
+Comment=Manage school assets, consumables, borrowing and reports
+Exec=@EXEC@
+Icon=saims
+Terminal=false
+Categories=Office;Education;
+StartupWMClass=saims

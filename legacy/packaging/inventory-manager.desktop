@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Inventory Manager
+Comment=Track stock, suppliers and movements
+Exec=@EXEC@
+Icon=inventory-manager
+Terminal=false
+Categories=Office;Finance;
+StartupWMClass=inventory-manager

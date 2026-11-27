@@ -1,0 +1,32 @@
+name: build
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  linux:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: sudo apt-get update && sudo apt-get install -y libegl1 libxkbcommon-x11-0 libxcb-cursor0
+      - run: ./build.sh
+        env: { QT_QPA_PLATFORM: offscreen }
+      - uses: actions/upload-artifact@v4
+        with: { name: linux, path: dist/SAIMS-*.tar.gz }
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: choco install innosetup -y --no-progress
+      - run: .\build.bat
+        shell: cmd
+        env: { QT_QPA_PLATFORM: offscreen }
+      - uses: actions/upload-artifact@v4
+        with: { name: windows, path: dist/SAIMS-*-Setup.exe }
