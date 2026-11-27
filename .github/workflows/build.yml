@@ -10,6 +10,7 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-22.04  # older glibc, so the build runs on more distributions
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -17,13 +18,16 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y libegl1 libxkbcommon-x11-0 libxcb-cursor0
       - run: ./build.sh
         env: { QT_QPA_PLATFORM: offscreen }
-      - run: dist/SAIMS/SAIMS --self-test
+      - name: Self-test the packaged app
+        timeout-minutes: 5
+        run: dist/SAIMS/SAIMS --self-test
         env: { QT_QPA_PLATFORM: offscreen, SAIMS_DATA_DIR: "${{ runner.temp }}/saims-selftest" }
       - uses: actions/upload-artifact@v4
         with: { name: linux, path: "dist/SAIMS-*.tar.gz", if-no-files-found: error }
 
   windows:
     runs-on: windows-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -33,11 +37,18 @@ jobs:
         shell: cmd
         env: { QT_QPA_PLATFORM: offscreen }
       - name: Self-test and portable zip
+        timeout-minutes: 5
         shell: pwsh
         env: { QT_QPA_PLATFORM: offscreen, SAIMS_DATA_DIR: "${{ runner.temp }}\\saims-selftest" }
         run: |
-          $p = Start-Process dist\SAIMS\SAIMS.exe -ArgumentList "--self-test" -Wait -PassThru -NoNewWindow
-          if ($p.ExitCode -ne 0) { throw "SAIMS self-test failed" }
+          # The app is windowed (no console): it writes its result to self-test.log in the data folder.
+          $p = Start-Process dist\SAIMS\SAIMS.exe -ArgumentList "--self-test" -PassThru
+          $null = $p.Handle  # keep the handle so ExitCode is available after the process ends
+          $finished = $p.WaitForExit(180000)
+          $log = Join-Path $env:SAIMS_DATA_DIR "self-test.log"
+          if (Test-Path $log) { Get-Content $log } else { Write-Host "No self-test.log was written." }
+          if (-not $finished) { $p.Kill(); throw "SAIMS self-test did not finish within 3 minutes" }
+          if ($p.ExitCode -ne 0) { throw "SAIMS self-test failed (exit code $($p.ExitCode))" }
           $v = (Get-Content VERSION).Trim()
           Compress-Archive -Path dist\SAIMS -DestinationPath "dist\SAIMS-$v-windows-x64-portable.zip"
       - uses: actions/upload-artifact@v4
@@ -52,6 +63,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: [linux, windows]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions: { contents: write }
     steps:
       - uses: actions/checkout@v4

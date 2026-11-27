@@ -61,7 +61,10 @@ class LocalServer:
                 raise
             self.port = s.getsockname()[1]
         app = create_app(Settings(seed_demo_data=self.seed_demo))
-        config = uvicorn.Config(app, host=host, port=self.port, log_level="warning", access_log=False, **extra)
+        # log_config=None: uvicorn's console logging probes sys.stdout, which does not exist in the windowed Windows
+        # app (it fails with "Unable to configure formatter 'default'"). SAIMS logs to a file instead.
+        config = uvicorn.Config(app, host=host, port=self.port, log_level="warning", access_log=False,
+                                log_config=None, **extra)
         self._server = uvicorn.Server(config)
         self._thread = threading.Thread(target=self._server.run, name="saims-server", daemon=True)
         self._thread.start()

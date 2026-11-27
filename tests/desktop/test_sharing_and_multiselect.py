@@ -108,3 +108,14 @@ def test_check_combo(app):
     assert combo.values() == ["assigned"]
     combo.clear_selection()
     assert combo.values() == []
+
+
+def test_runs_without_console_like_the_windowed_windows_app(tmp_path, monkeypatch):
+    """The Windows build has no console: sys.stdout and sys.stderr are None. The built-in server must still start
+    (uvicorn's console logging used to crash it) and the self-test must report through its log file."""
+    monkeypatch.setenv("SAIMS_DATA_DIR", str(tmp_path))
+    monkeypatch.setattr(sys, "stdout", None)
+    monkeypatch.setattr(sys, "stderr", None)
+    from saims.desktop.main import self_test
+    assert self_test() == 0
+    assert "self-test: OK" in (tmp_path / "self-test.log").read_text(encoding="utf-8")

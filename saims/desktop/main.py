@@ -90,20 +90,45 @@ class DesktopApp:
 
 
 def self_test() -> int:
-    """Start the built-in server, sign in and check the data. Used to verify installed builds."""
+    """Start the built-in server, sign in and check the data. Used to verify installed builds.
+
+    The result is printed and also written to <data folder>/self-test.log, because the windowed Windows app has
+    no console. A watchdog ends the process if anything hangs, so a build server never waits forever."""
+    import os
+    import threading
+    import traceback
+
     from saims.desktop.api import Api
+
+    log_path = data_dir() / "self-test.log"
+
+    def report(text: str) -> None:
+        print(text)
+        try:
+            log_path.write_text(text + "\n", encoding="utf-8")
+        except OSError:
+            pass
+
+    def give_up() -> None:
+        report("SAIMS self-test FAILED: timed out after 120 s")
+        os._exit(3)
+
+    watchdog = threading.Timer(120, give_up)
+    watchdog.daemon = True
+    watchdog.start()
     server = LocalServer(seed_demo=True)
     try:
         api = Api(server.start())
         api.login("admin", "demo1234")
-        ok = api.get("/stock/reconcile")["consistent"] and len(api.get("/assets")) > 0
-        print(f"SAIMS {__version__} self-test: {'OK' if ok else 'FAILED'} "
-              f"({len(api.get('/assets'))} assets, data in {data_dir()})")
+        assets = api.get("/assets")
+        ok = api.get("/stock/reconcile")["consistent"] and len(assets) > 0
+        report(f"SAIMS {__version__} self-test: {'OK' if ok else 'FAILED'} ({len(assets)} assets, data in {data_dir()})")
         return 0 if ok else 1
     except Exception as exc:  # noqa: BLE001
-        print(f"SAIMS self-test FAILED: {exc}")
+        report(f"SAIMS self-test FAILED: {exc}\n{traceback.format_exc()}")
         return 1
     finally:
+        watchdog.cancel()
         server.stop()
 
 

@@ -40,6 +40,9 @@ a.binaries = [b for b in a.binaries if _keep(b)]
 a.datas = [d for d in a.datas if _keep(d)]
 
 pyz = PYZ(a.pure)
+# disable_windowed_traceback: on an unexpected crash, exit instead of showing a dialog nobody can click
+# (it blocked the Windows build server for hours).
 exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="SAIMS", console=False,
+          disable_windowed_traceback=True,
           icon=str(root / "packaging" / "saims.ico") if sys.platform == "win32" else None)
 coll = COLLECT(exe, a.binaries, a.datas, strip=False, upx=False, name="SAIMS")
