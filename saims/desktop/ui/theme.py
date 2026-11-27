@@ -101,8 +101,7 @@ QListWidget#History::item {{ padding: 6px 2px; border-bottom: 1px solid {border}
 QListWidget#History::item:selected {{ background: transparent; color: {text}; }}
 QPushButton#Link {{ border: none; background: transparent; color: {accent}; text-align: left; padding: 2px 0; }}
 QPushButton#Link:hover {{ text-decoration: underline; }}
-#LoginBrand {{ background-color: {sidebar}; background-image: url({assets}/pattern-dark.svg);
-    background-repeat: repeat-xy; }}
+#LoginBrand {{ background: {sidebar}; }}
 #LoginBrand QLabel {{ color: {sidebar_text}; background: transparent; }}
 #LoginTitle {{ font-size: 24pt; font-weight: 800; }}
 #LoginPanel {{ background: {card}; }}

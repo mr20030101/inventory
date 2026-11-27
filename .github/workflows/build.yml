@@ -1,5 +1,7 @@
 name: build
 
+# Push a version tag (e.g. `git tag v0.1.0 && git push origin v0.1.0`) to build Windows and Linux and publish a
+# GitHub Release with both. "Run workflow" on the Actions tab builds without releasing.
 on:
   push:
     tags: ["v*"]
@@ -7,7 +9,7 @@ on:
 
 jobs:
   linux:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04  # older glibc, so the build runs on more distributions
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -15,8 +17,10 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install -y libegl1 libxkbcommon-x11-0 libxcb-cursor0
       - run: ./build.sh
         env: { QT_QPA_PLATFORM: offscreen }
+      - run: dist/SAIMS/SAIMS --self-test
+        env: { QT_QPA_PLATFORM: offscreen, SAIMS_DATA_DIR: "${{ runner.temp }}/saims-selftest" }
       - uses: actions/upload-artifact@v4
-        with: { name: linux, path: dist/SAIMS-*.tar.gz }
+        with: { name: linux, path: "dist/SAIMS-*.tar.gz", if-no-files-found: error }
 
   windows:
     runs-on: windows-latest
@@ -28,5 +32,51 @@ jobs:
       - run: .\build.bat
         shell: cmd
         env: { QT_QPA_PLATFORM: offscreen }
+      - name: Self-test and portable zip
+        shell: pwsh
+        env: { QT_QPA_PLATFORM: offscreen, SAIMS_DATA_DIR: "${{ runner.temp }}\\saims-selftest" }
+        run: |
+          $p = Start-Process dist\SAIMS\SAIMS.exe -ArgumentList "--self-test" -Wait -PassThru -NoNewWindow
+          if ($p.ExitCode -ne 0) { throw "SAIMS self-test failed" }
+          $v = (Get-Content VERSION).Trim()
+          Compress-Archive -Path dist\SAIMS -DestinationPath "dist\SAIMS-$v-windows-x64-portable.zip"
       - uses: actions/upload-artifact@v4
-        with: { name: windows, path: dist/SAIMS-*-Setup.exe }
+        with:
+          name: windows
+          path: |
+            dist/SAIMS-*-Setup.exe
+            dist/SAIMS-*-windows-x64-portable.zip
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    permissions: { contents: write }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: artifacts, merge-multiple: true }
+      - name: Release notes
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          {
+            echo "## Downloads"
+            echo
+            echo "| System | File | How to install |"
+            echo "| --- | --- | --- |"
+            echo "| Windows 10/11 (64-bit) | \`SAIMS-$v-Setup.exe\` | Run it. Windows may warn about an unrecognised app (the installer is not code-signed yet): choose *More info* then *Run anyway*. |"
+            echo "| Windows, no install | \`SAIMS-$v-windows-x64-portable.zip\` | Extract and run \`SAIMS\\SAIMS.exe\`. |"
+            echo "| Linux (x86-64) | \`SAIMS-$v-linux-x86_64.tar.gz\` | Extract, then run \`./install.sh\` (no root needed). Some distros need \`libxcb-cursor0\` / \`xcb-util-cursor\`. |"
+            echo
+            echo "On first start SAIMS creates a demo school. Every demo account (\`admin\`, \`principal\`, \`custodian\`, \`head.science\`, \`teacher\`, \`auditor\`, \`maintenance\`) uses the password \`demo1234\`; see the README for a 10-minute demo script."
+            echo
+            awk -v v="$v" 'index($0, "## " v " ") == 1 {f=1; next} /^## / && f {exit} f' CHANGELOG.md
+          } > notes.md
+          cat notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: SAIMS ${{ github.ref_name }}
+          body_path: notes.md
+          files: artifacts/*
+          fail_on_unmatched_files: true
