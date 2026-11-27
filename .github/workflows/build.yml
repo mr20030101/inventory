@@ -47,6 +47,7 @@ jobs:
           $null = $p.Handle  # keep the handle so ExitCode is available after the process ends
           $finished = $p.WaitForExit(180000)
           if (-not $finished) { $p.Kill() }
+          $level = if ($finished -and $p.ExitCode -eq 0) { "notice" } else { "error" }
           # Show the app's own logs, and repeat them as annotations (visible on the run page without the log).
           foreach ($name in "self-test.log", "crash.log") {
             $log = Join-Path $env:SAIMS_DATA_DIR $name
@@ -54,7 +55,7 @@ jobs:
               $text = (Get-Content $log -Raw).Trim()
               Write-Host "---- $name ----"; Write-Host $text
               $encoded = $text -replace '%', '%25' -replace "`r", '' -replace "`n", '%0A'
-              Write-Host "::error title=SAIMS $name::$encoded"
+              Write-Host "::$level title=SAIMS $name::$encoded"
             }
           }
           if (-not $finished) { throw "SAIMS self-test did not finish within 3 minutes" }
