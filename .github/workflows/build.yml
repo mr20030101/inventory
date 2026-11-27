@@ -1,9 +1,10 @@
 name: build
 
-# Push a version tag (e.g. `git tag v0.1.0 && git push origin v0.1.0`) to build Windows and Linux and publish a
-# GitHub Release with both. "Run workflow" on the Actions tab builds without releasing.
+# Every push to main builds and tests Windows and Linux (no release). Push a version tag
+# (e.g. `git tag v0.1.0 && git push origin v0.1.0`) to also publish a GitHub Release with both.
 on:
   push:
+    branches: [main]
     tags: ["v*"]
   workflow_dispatch:
 
@@ -45,9 +46,18 @@ jobs:
           $p = Start-Process dist\SAIMS\SAIMS.exe -ArgumentList "--self-test" -PassThru
           $null = $p.Handle  # keep the handle so ExitCode is available after the process ends
           $finished = $p.WaitForExit(180000)
-          $log = Join-Path $env:SAIMS_DATA_DIR "self-test.log"
-          if (Test-Path $log) { Get-Content $log } else { Write-Host "No self-test.log was written." }
-          if (-not $finished) { $p.Kill(); throw "SAIMS self-test did not finish within 3 minutes" }
+          if (-not $finished) { $p.Kill() }
+          # Show the app's own logs, and repeat them as annotations (visible on the run page without the log).
+          foreach ($name in "self-test.log", "crash.log") {
+            $log = Join-Path $env:SAIMS_DATA_DIR $name
+            if (Test-Path $log) {
+              $text = (Get-Content $log -Raw).Trim()
+              Write-Host "---- $name ----"; Write-Host $text
+              $encoded = $text -replace '%', '%25' -replace "`r", '' -replace "`n", '%0A'
+              Write-Host "::error title=SAIMS $name::$encoded"
+            }
+          }
+          if (-not $finished) { throw "SAIMS self-test did not finish within 3 minutes" }
           if ($p.ExitCode -ne 0) { throw "SAIMS self-test failed (exit code $($p.ExitCode))" }
           $v = (Get-Content VERSION).Trim()
           Compress-Archive -Path dist\SAIMS -DestinationPath "dist\SAIMS-$v-windows-x64-portable.zip"
