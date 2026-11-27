@@ -1,8 +1,8 @@
 # SAIMS — School Asset & Inventory Management System
 
 SAIMS tracks a school's fixed assets and consumable supplies: who holds what, where it is, what it cost,
-what's running low, and who borrowed it. It follows the specification in
-[SAIMS_Software_Requirements_and_Development_Blueprint.md](SAIMS_Software_Requirements_and_Development_Blueprint.md).
+what's running low, and who borrowed it. It follows the client's software requirements specification
+(not included in this repository).
 
 **Status: 0.1.0 demo release** (stages 1–3 of the implementation plan). See [CHANGELOG.md](CHANGELOG.md).
 

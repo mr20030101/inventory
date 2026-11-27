@@ -6,3 +6,6 @@ dist/
 .pytest_cache/
 *.db
 .venv-sandbox/
+
+# Client specification: kept locally, not published
+SAIMS_Software_Requirements_and_Development_Blueprint.md
