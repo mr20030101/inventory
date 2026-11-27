@@ -6,9 +6,20 @@ from PyInstaller.utils.hooks import collect_submodules
 
 root = Path(SPECPATH).parent
 
+# Windows: extensions built for Python's stable ABI ("abi3": argon2-cffi-bindings, cryptography) load
+# python3.dll, which PyInstaller does not always collect. Without it the app fails on start with
+# "DLL load failed while importing _ffi".
+extra_binaries = []
+if sys.platform == "win32":
+    python3_dll = Path(sys.base_prefix) / "python3.dll"
+    if not python3_dll.exists():
+        raise SystemExit(f"python3.dll not found in {sys.base_prefix}")
+    extra_binaries.append((str(python3_dll), "."))
+
 a = Analysis(
     [str(root / "run_saims.py")],
     pathex=[str(root)],
+    binaries=extra_binaries,
     datas=[
         (str(root / "saims" / "assets"), "saims/assets"),
         (str(root / "saims" / "backend" / "migrations"), "saims/backend/migrations"),
