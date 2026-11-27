@@ -23,7 +23,15 @@ def _crash_log() -> None:
     """Keep the traceback of a crash in <data folder>/crash.log: the windowed app has nowhere else to show it."""
     try:
         from saims.paths import data_dir
-        (data_dir() / "crash.log").write_text(traceback.format_exc(), encoding="utf-8")
+        text = traceback.format_exc()
+        error = sys.exc_info()[1]
+        if sys.platform == "win32" and "DLL load failed" in str(error):
+            try:
+                from saims.windiag import report
+                text += "\n" + report(str(error))
+            except Exception:  # noqa: BLE001
+                text += "\n(DLL diagnostics failed: " + traceback.format_exc() + ")"
+        (data_dir() / "crash.log").write_text(text, encoding="utf-8")
     except Exception:  # noqa: BLE001 - never hide the original error
         pass
 

@@ -3,7 +3,9 @@ rem Build SAIMS for Windows: dist\SAIMS\SAIMS.exe and, if Inno Setup 6 is instal
 rem dist\SAIMS-<version>-Setup.exe
 setlocal
 cd /d "%~dp0"
-if not exist .venv\Scripts\python.exe ( py -3 -m venv .venv || python -m venv .venv )
+rem Prefer the active "python" (on CI, the version actions/setup-python installed); fall back to the py launcher.
+if not exist .venv\Scripts\python.exe ( python -m venv .venv || py -3 -m venv .venv )
+.venv\Scripts\python -c "import sys; print('Building with Python', sys.version)"
 .venv\Scripts\python -m pip install -q --upgrade pip
 .venv\Scripts\python -m pip install -q -r requirements-dev.txt || exit /b 1
 set QT_QPA_PLATFORM=offscreen
